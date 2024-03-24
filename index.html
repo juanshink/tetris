@@ -8,16 +8,62 @@
   </head>
   <body>
     <div id="app">
+
       <section>
         <div class="startButton">
           Start TETRIS
         </div>
         <img class="howtomove" src="/howtomove-tetris.png">
       </section>
-      <canvas></canvas>
-    </div>
+
+      <div style="display: flex; gap: 10px;">
+
+        <div>
+         
+
+          <canvas></canvas>
+
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <h1 style="text-align: center;">Next Piece</h1>
+            <div id="nextpiece">
+            </div>
+          </div>
+
+          <div>
+            <strong>Score: <span id="score"></span></strong>  
+            </button>
+          </div>
+
+          <div id="virtualcontrols" style="display: flex; flex-direction: column; justify-content: center;">
+
+            <button id="btRotate" class="button">&#8635;</button>
+            <button id="btLeft" class="button">&#8592;</button>
+            <button id="btDown" class="button">&#8595;</button>
+            <button id="btRight" class="button">&#8594;</button>
+       
+          </div>
+
+        </div>
+
+
+
+      </div>
+
+     
+
+
     
-    <strong>Score:<span></span></strong>
+
+   
+      
+
+    </div>
     <script type="module" src="/main.js"></script>
   </body>
 </html>
+
+

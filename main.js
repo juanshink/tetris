@@ -1,8 +1,10 @@
 import { BLOCK_SIZE, BOARD_WIDTH, BOARD_HEIGHT } from './const'
 import { EVENT_MOV } from './const'
+import { PIECES } from './pieces'
 import './style.css'
 
 // importo el audio de mp3
+
 
 
 
@@ -14,10 +16,14 @@ const context = canvas.getContext('2d')
 const $score = document.querySelector('span')
 let score = 0
 
+const $nextpiece = document.querySelector('#nextpiece');
+let nextPieceShape = getNextPiece();
+
 canvas.width = BLOCK_SIZE * BOARD_WIDTH
 canvas.height = BLOCK_SIZE * BOARD_HEIGHT
 
 context.scale(BLOCK_SIZE, BLOCK_SIZE)
+
 
 // 3) Board
 
@@ -31,80 +37,47 @@ function createdBord(width, height){
 
 const piece = {
   position: {x:6, y:0},
-  shape: [
-    [1, 1],
-    [1, 1]
-  ]
+  shape:getNextPiece()
 }
 
-const PIECES = [
-  [
-    [1, 1],
-    [1, 1]
-  ],
-  [
-    [1, 0],
-    [1, 0],
-    [1, 1]
-  ],
-  [
-    [1, 1, 1, 1]
-  ],
-  [
-    [0, 1],
-    [0, 1],
-    [1, 1]
-  ],
-  [
-    [1, 0],
-    [1, 0],
-    [1, 1]
-  ],
-  [
-    [1, 0],
-    [1, 1],
-    [1, 0]
-  ],
-  [
-    [0, 1],
-    [1, 1],
-    [0, 1]
-  ],
-  [
-    [1, 1, 0],
-    [0, 1, 1]
-  ],
-  [
-    [0, 1, 1],
-    [1, 1, 0]
-  ]
-]
+// Proxima piez
+
+function getNextPiece() {
+  const nextPieceIndex = Math.floor(Math.random() * PIECES.length);
+  return PIECES[nextPieceIndex];
+}
 
 
 // 2) Game loop
 
-let dropCounter = 0
-let lastTime = 0
+let dropCounter = 0;
+let lastTime = 0;
+let speedMultiplier = 1; // Multiplicador de velocidad inicial
 
 function update(time = 0){
-  const deltaTime = time - lastTime
-  lastTime = time
+  const deltaTime = time - lastTime;
+  lastTime = time;
 
-  dropCounter += deltaTime
-  console.log(dropCounter)
+  dropCounter += deltaTime * speedMultiplier; // Aumenta el contador de caída basado en el multiplicador de velocidad
 
   if(dropCounter > 1000){
-    piece.position.y++
-    dropCounter = 0
+    piece.position.y++;
+    dropCounter = 0;
     if (checkCollision()){
-      piece.position.y--
-      solidifyPiece()
-      removeRow()
+      piece.position.y--;
+      solidifyPiece();
+      removeRow();
     }
   }
 
-  draw()
-  window.requestAnimationFrame(update)
+   // Verifica si el puntaje alcanza un múltiplo de 50 para aumentar la velocidad
+   if (score % 50 === 0 && score !== 0) {
+    console.log("este es el score: ", score)
+    speedMultiplier *= 0.9; // Disminuye el intervalo de tiempo entre cada caída (aumenta la velocidad)
+  }
+
+  draw();
+  window.requestAnimationFrame(update);
 }
 
 function draw(){
@@ -121,36 +94,77 @@ function draw(){
   })
   
   piece.shape.forEach((row, y) => {
-   row.forEach((value, x) => {
-    if(value === 1){
-      context.fillStyle = 'red'
-      context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1)
-    }
-    })
-  })
+    row.forEach((value, x) => {
+      if (value === 1) {
+        // Dibuja el borde de la pieza
+        context.fillStyle = 'black'; // Color del borde
+        context.fillRect(x + piece.position.x - 0.05, y + piece.position.y - 0.05, 1.1, 1.1); // Aumenta ligeramente el tamaño del rectángulo para crear el borde
+        // Dibuja el interior de la pieza
+        context.fillStyle = 'red'; // Color del interior
+        context.fillRect(x + piece.position.x, y + piece.position.y, 1, 1);
+      }
+    });
+  });
 
-  $score.innerText = score
+  showNextPiece(nextPieceShape);
+  $score.innerText = score 
 }
 
-// 5) Mover la pieza
 
-document.addEventListener('keydown', event => {
+// 5) Mover las piezas
 
-  if (event.key === EVENT_MOV.LEFT){
+  document.addEventListener('keydown', event => {
+
+    if (event.key === EVENT_MOV.LEFT){
+     moveLeft()
+    } 
+      
+    if (event.key === EVENT_MOV.RIGTH){
+      moveRight()
+    }
+
+    if (event.key === EVENT_MOV.DOWN) {
+      moveDown()
+    }
+
+    // Rotar las piezas
+    if (event.key === EVENT_MOV.UP) {
+      rotate()
+    }
+
+  })
+
+  document.getElementById('btLeft').addEventListener('click', () => {
+    moveLeft()
+  });
+
+  document.getElementById('btRight').addEventListener('click', () => {
+    moveRight()
+  });
+
+  document.getElementById('btDown').addEventListener('click', () => {
+    moveDown()
+  });
+
+  document.getElementById('btRotate').addEventListener('click', () => {
+    rotate()
+  });
+
+  function moveLeft(){
     piece.position.x--
     if(checkCollision()){
       piece.position.x++
     }
-  } 
-    
-  if (event.key === EVENT_MOV.RIGTH){
-    piece.position.x++
-    if(checkCollision()){
-      piece.position.x--
-    }
   }
 
-  if (event.key === EVENT_MOV.DOWN) {
+  function moveRight(){
+    piece.position.x++
+      if(checkCollision()){
+        piece.position.x--
+      }
+  }
+
+  function moveDown(){
     piece.position.y++
     if(checkCollision()){
       piece.position.y--
@@ -159,28 +173,25 @@ document.addEventListener('keydown', event => {
     }
   }
 
-  // Rotar las piezas
-  if (event.key === EVENT_MOV.UP) {
+  function rotate(){
     const rotated = []
 
-    for(let i=0; i < piece.shape[0].length; i++){
-      const row = []
+      for(let i=0; i < piece.shape[0].length; i++){
+        const row = []
 
-      for(let j = piece.shape.length - 1; j >= 0; j--){
-        row.push(piece.shape[j][i])
+        for(let j = piece.shape.length - 1; j >= 0; j--){
+          row.push(piece.shape[j][i])
+        }
+
+        rotated.push(row)
       }
 
-      rotated.push(row)
-    }
-
-    const previousShape = piece.shape
-    piece.shape = rotated
-    if(checkCollision()){
-      piece.shape = previousShape
-    }
+      const previousShape = piece.shape
+      piece.shape = rotated
+      if(checkCollision()){
+        piece.shape = previousShape
+      }
   }
-
-})
 
 // 6) Colisiones
 
@@ -198,26 +209,35 @@ function checkCollision(){
 // 7) Solidificacion
 
 function solidifyPiece(){
-  piece.shape.find((row, y) =>{
-    row.find((value, x) =>{
+  // Solidificar la pieza actual en el tablero
+  piece.shape.forEach((row, y) => {
+    row.forEach((value, x) => {
       if (value === 1){
         board[y + piece.position.y][x + piece.position.x] = 1
       }
     })
-  })
+  });
 
-  piece.position.x = Math.floor(BOARD_WIDTH / 2)
-  piece.position.y = 0
+  // Reiniciar la posición de la pieza actual
+  piece.position.x = Math.floor(BOARD_WIDTH / 2);
+  piece.position.y = 0;
 
-  // Selecciono una pieza al azar
-  piece.shape = PIECES[Math.floor(Math.random() * PIECES.length)]
+  // Asignar la forma de la próxima pieza a la pieza actual
+  piece.shape = nextPieceShape;
 
-  // Game Over
+  // Obtener la forma de la próxima pieza para el siguiente ciclo
+  nextPieceShape = getNextPiece();
+
+  // Dibujar la pieza actual en el canvas
+  draw();
+
+  // Verificar si hay colisión con la nueva pieza
   if(checkCollision()){
-    window.alert('GAME OVER')
-    board.forEach((row) => row.fill(0))
+    window.alert('GAME OVER');
+    board.forEach((row) => row.fill(0));
   }
 }
+
 
 // 8) Remover linea
 
@@ -251,3 +271,33 @@ $start.addEventListener('click', () =>{
   audio.play()
 
 })
+
+
+function showNextPiece(nextPieceShape) {
+  // Limpiar el contenido actual del elemento HTML
+  $nextpiece.innerHTML = '';
+
+  // Crear un nuevo canvas para dibujar la próxima pieza
+  const nextPieceCanvas = document.createElement('canvas');
+  const nextPieceContext = nextPieceCanvas.getContext('2d');
+
+  // Calcular el tamaño del canvas basado en la forma de la próxima pieza
+  nextPieceCanvas.width = nextPieceShape[0].length * BLOCK_SIZE;
+  nextPieceCanvas.height = nextPieceShape.length * BLOCK_SIZE;
+
+  // Escalar el contexto del canvas
+  nextPieceContext.scale(BLOCK_SIZE, BLOCK_SIZE);
+
+  // Dibujar la próxima pieza en el canvas
+  nextPieceShape.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value === 1) {
+        nextPieceContext.fillStyle = 'red';
+        nextPieceContext.fillRect(x, y, 1, 1);
+      }
+    });
+  });
+
+  // Agregar el canvas al elemento HTML
+  $nextpiece.appendChild(nextPieceCanvas);
+}
