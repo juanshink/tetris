@@ -73,7 +73,7 @@ function update(time = 0){
    // Verifica si el puntaje alcanza un múltiplo de 50 para aumentar la velocidad
    if (score % 50 === 0 && score !== 0) {
     console.log("este es el score: ", score)
-    speedMultiplier *= 0.9; // Disminuye el intervalo de tiempo entre cada caída (aumenta la velocidad)
+    speedMultiplier += 1; // Disminuye el intervalo de tiempo entre cada caída (aumenta la velocidad)
   }
 
   draw();
