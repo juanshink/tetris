@@ -13,11 +13,15 @@ import './style.css'
 const canvas = document.querySelector('canvas')
 const context = canvas.getContext('2d')
 
-const $score = document.querySelector('span')
+const $score = document.querySelector('#score')
 let score = 0
+
+const $level = document.querySelector('#level')
+let level = 0
 
 const $nextpiece = document.querySelector('#nextpiece');
 let nextPieceShape = getNextPiece();
+
 
 canvas.width = BLOCK_SIZE * BOARD_WIDTH
 canvas.height = BLOCK_SIZE * BOARD_HEIGHT
@@ -73,7 +77,7 @@ function update(time = 0){
    // Verifica si el puntaje alcanza un múltiplo de 50 para aumentar la velocidad
    if (score % 50 === 0 && score !== 0) {
     console.log("este es el score: ", score)
-    speedMultiplier += 1; // Disminuye el intervalo de tiempo entre cada caída (aumenta la velocidad)
+    speedMultiplier += 0.02; //(aumenta la velocidad)
   }
 
   draw();
@@ -108,6 +112,7 @@ function draw(){
 
   showNextPiece(nextPieceShape);
   $score.innerText = score 
+  $level.innerText = level
 }
 
 
@@ -133,22 +138,6 @@ function draw(){
     }
 
   })
-
-  document.getElementById('btLeft').addEventListener('click', () => {
-    moveLeft()
-  });
-
-  document.getElementById('btRight').addEventListener('click', () => {
-    moveRight()
-  });
-
-  document.getElementById('btDown').addEventListener('click', () => {
-    moveDown()
-  });
-
-  document.getElementById('btRotate').addEventListener('click', () => {
-    rotate()
-  });
 
   function moveLeft(){
     piece.position.x--
@@ -241,6 +230,8 @@ function solidifyPiece(){
 
 // 8) Remover linea
 
+let linesforuplevel = 0
+
 function removeRow(){
   const rowsToRemove = []
 
@@ -255,8 +246,15 @@ function removeRow(){
     const newRow = Array(BOARD_WIDTH).fill(0)
     board.unshift(newRow)
     score += 10
+    linesforuplevel += 1
+    if (linesforuplevel === 5){
+      level += 1
+      linesforuplevel = 0
+    }
   })
 }
+
+//////////////////////////////////////////////
 
 const $start = document.querySelector('.startButton')
 const section = document.querySelector('section')
@@ -271,6 +269,8 @@ $start.addEventListener('click', () =>{
   audio.play()
 
 })
+
+/// MOSTRAR LA SIGUIENTE PIEZA
 
 
 function showNextPiece(nextPieceShape) {
@@ -298,6 +298,58 @@ function showNextPiece(nextPieceShape) {
     });
   });
 
-  // Agregar el canvas al elemento HTML
   $nextpiece.appendChild(nextPieceCanvas);
+}
+
+
+////// PARA JUGAR EN CELULAR
+
+// Agregar event listeners para los gestos táctiles
+document.addEventListener('touchstart', handleTouchStart, false);
+document.addEventListener('touchmove', handleTouchMove, false);
+
+// Variables para almacenar las posiciones iniciales de los gestos táctiles
+let xDown = null;
+let yDown = null;
+
+// Función para manejar el inicio del gesto táctil
+function handleTouchStart(evt) {
+    const firstTouch = evt.touches[0];
+    xDown = firstTouch.clientX;
+    yDown = firstTouch.clientY;
+}
+
+// Función para manejar el movimiento del gesto táctil
+function handleTouchMove(evt) {
+    if (!xDown || !yDown) {
+        return;
+    }
+
+    const xUp = evt.touches[0].clientX;
+    const yUp = evt.touches[0].clientY;
+
+    const xDiff = xDown - xUp;
+    const yDiff = yDown - yUp;
+
+    // Distinguir si el gesto fue horizontal o vertical
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+        // Si el movimiento es horizontal, determinar si fue hacia la izquierda o derecha
+        if (xDiff > 0) {
+            moveLeft(); // Llamar a la función para mover la pieza hacia la izquierda
+        } else {
+            moveRight(); // Llamar a la función para mover la pieza hacia la derecha
+        }
+    } else {
+        // Si el movimiento es vertical, determinar si fue hacia arriba o abajo
+        if (yDiff > 0) {
+            // Deslizar hacia abajo para acelerar la caída de la pieza (opcional)
+            moveDown(); // Llamar a la función para mover la pieza hacia abajo
+        } else {
+            rotate(); // Tocar la pantalla para rotar la pieza
+        }
+    }
+
+    // Reiniciar las posiciones iniciales de los gestos táctiles
+    xDown = null;
+    yDown = null;
 }
