@@ -304,9 +304,10 @@ function showNextPiece(nextPieceShape) {
 
 ////// PARA JUGAR EN CELULAR
 
-// Agregar event listeners para los gestos táctiles
+// Agregar event listeners para los gestos táctiles y clics
 document.addEventListener('touchstart', handleTouchStart, false);
 document.addEventListener('touchmove', handleTouchMove, false);
+document.addEventListener('click', handleTap, false);
 
 // Variables para almacenar las posiciones iniciales de los gestos táctiles
 let xDown = null;
@@ -345,12 +346,24 @@ function handleTouchMove(evt) {
             // Deslizar hacia abajo para acelerar la caída de la pieza (opcional)
             evt.preventDefault();
             moveDown(); // Llamar a la función para mover la pieza hacia abajo
-        } else {
-            rotate(); // Tocar la pantalla para rotar la pieza
         }
     }
 
     // Reiniciar las posiciones iniciales de los gestos táctiles
     xDown = null;
     yDown = null;
+}
+
+// Función para manejar el evento de clic en cualquier parte del tablero
+function handleTap(evt) {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = evt.clientX - rect.left;
+    const clickY = evt.clientY - rect.top;
+
+    // Verificar si el clic ocurrió en la parte inferior del tablero
+    if (clickY > canvas.height - BLOCK_SIZE) {
+        moveDown(); // Llamar a la función para mover la pieza hacia abajo
+    } else {
+        rotate(); // Llamar a la función para rotar la pieza
+    }
 }
