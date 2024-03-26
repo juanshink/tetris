@@ -307,7 +307,8 @@ function showNextPiece(nextPieceShape) {
 // Agregar event listeners para los gestos táctiles y clics
 document.addEventListener('touchstart', handleTouchStart, false);
 document.addEventListener('touchmove', handleTouchMove, false);
-document.addEventListener('click', handleTap, false);
+document.addEventListener('dblclick', handleChangePiece, false);
+document.addEventListener('touchend', handleTouchEnd, false);
 
 // Variables para almacenar las posiciones iniciales de los gestos táctiles
 let xDown = null;
@@ -340,13 +341,6 @@ function handleTouchMove(evt) {
         } else {
             moveRight(); // Llamar a la función para mover la pieza hacia la derecha
         }
-    } else {
-        // Si el movimiento es vertical, determinar si fue hacia arriba o abajo
-        if (yDiff > 0) {
-            // Deslizar hacia abajo para acelerar la caída de la pieza (opcional)
-            evt.preventDefault();
-            moveDown(); // Llamar a la función para mover la pieza hacia abajo
-        }
     }
 
     // Reiniciar las posiciones iniciales de los gestos táctiles
@@ -354,16 +348,31 @@ function handleTouchMove(evt) {
     yDown = null;
 }
 
-// Función para manejar el evento de clic en cualquier parte del tablero
-function handleTap(evt) {
-    const rect = canvas.getBoundingClientRect();
-    const clickX = evt.clientX - rect.left;
-    const clickY = evt.clientY - rect.top;
+// Función para manejar el evento de fin del gesto táctil
+function handleTouchEnd(evt) {
+  // Si se levanta el dedo después de un gesto hacia abajo, mover la pieza hacia abajo
+  if (yDown) {
+      moveDown(); // Llamar a la función para mover la pieza hacia abajo
+  }
+}
 
-    // Verificar si el clic ocurrió en la parte inferior del tablero
-    if (clickY > canvas.height - BLOCK_SIZE) {
-        moveDown(); // Llamar a la función para mover la pieza hacia abajo
-    } else {
-        rotate(); // Llamar a la función para rotar la pieza
-    }
+// Función para manejar el evento de doble clic en la pieza
+function handleChangePiece(evt) {
+  // Obtener las coordenadas del clic
+  const rect = canvas.getBoundingClientRect();
+  const clickX = evt.clientX - rect.left;
+  const clickY = evt.clientY - rect.top;
+
+  // Verificar si el doble clic ocurrió dentro del área de juego
+  if (clickX >= 0 && clickX <= canvas.width && clickY >= 0 && clickY <= canvas.height) {
+      // Calcular las coordenadas relativas dentro de la pieza
+      const relativeX = clickX / BLOCK_SIZE - piece.position.x;
+      const relativeY = clickY / BLOCK_SIZE - piece.position.y;
+
+      // Verificar si el doble clic ocurrió dentro de la pieza
+      if (relativeX >= 0 && relativeX < piece.shape[0].length &&
+          relativeY >= 0 && relativeY < piece.shape.length) {
+          rotate(); // Llamar a la función para rotar la pieza
+      }
+  }
 }
