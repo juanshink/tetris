@@ -343,6 +343,7 @@ function handleTouchMove(evt) {
         // Si el movimiento es vertical, determinar si fue hacia arriba o abajo
         if (yDiff > 0) {
             // Deslizar hacia abajo para acelerar la caída de la pieza (opcional)
+            evt.preventDefault();
             moveDown(); // Llamar a la función para mover la pieza hacia abajo
         } else {
             rotate(); // Tocar la pantalla para rotar la pieza
